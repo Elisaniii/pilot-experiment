@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+:root {
+  --chat-bg: #f5f5f5;
+  --msg-user: #d1e7ff;
+  --msg-agent: #ffffff;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
