@@ -10,7 +10,7 @@ export interface Condition {
   agentName: string;
   agentAvatar: string; // emoji placeholder, 正式版換成圖片
   instruction: string;
-  greetings: string[]; // 依序送出的開場訊息；{school}、{dept} 為動態佔位符
+  greetings: string[]; // 依序送出的開場訊息；{school} 為動態佔位符
   confirmationResponse?: string[]; // 受試者確認基本資料後的回應，依序送出多個對話框
 }
 
@@ -27,7 +27,7 @@ export const CONDITIONS: Record<string, Condition> = {
     greetings: [
       "你好，我是職涯中心的戴文琴顧問，很高興今天能跟你聊聊。",
       "感謝你願意參加這次的對談，我們會透過幾個問題來了解你，過程中不需要緊張，輕鬆地分享就好。",
-      "首先先確認一下基本的資料，你目前是就讀{school}{dept}對嗎？",
+      "首先先確認一下基本的資料，你目前是來自{school}對嗎？",
     ],
     confirmationResponse: ["好的，那我們開始吧！"],
   },
@@ -43,7 +43,7 @@ export const CONDITIONS: Record<string, Condition> = {
     greetings: [
       "你好，我是課活組的戴文琴顧問，很高興今天能跟你聊聊。",
       "感謝你願意參加這次的對談，我們會透過幾個問題來了解你，過程中不需要緊張，輕鬆地分享就好。",
-      "首先先確認一下基本的資料，你目前是就讀{school}{dept}對嗎？",
+      "首先先確認一下基本的資料，你目前是來自{school}對嗎？",
     ],
     confirmationResponse: ["好的，那我們開始吧！"],
   },
@@ -58,7 +58,7 @@ export const CONDITIONS: Record<string, Condition> = {
       "這個研究是與職涯發展中心合作的計畫。你會與 CareerBot 進行對談，CareerBot 會根據你的回答，評估您在未來職場上的競爭力，產出一份個人競爭力評估報告，包含您的競爭力分數以及優缺點分析。",
     greetings: [
       "你好，我是 CareerBot。接下來我會問你幾個問題，請根據你的實際情況回答。我們開始吧。",
-      "請確認基本資料：就讀學校 {school}，科系 {dept}。資料正確請回覆「是」。",
+      "請確認基本資料：學校/公司名稱 {school}。資料正確請回覆「是」。",
     ],
     confirmationResponse: ["資料已確認", "開始進行競爭力評估"],
   },
@@ -73,7 +73,7 @@ export const CONDITIONS: Record<string, Condition> = {
       "這個研究是與課外活動組合作的計畫。你會與 MatchBot 進行對談，我們希望了解大學生的社團興趣與課程探索方向，對談結束後，MatchBot 會給你一些修課與社團活動的推薦，作為你個人探索的參考。",
     greetings: [
       "你好，我是 MatchBot。接下來我會問你幾個問題，請根據你的實際情況回答。我們開始吧。",
-      "請確認基本資料：就讀學校 {school}，科系 {dept}。資料正確請回覆「是」。",
+      "請確認基本資料：學校/公司名稱 {school}。資料正確請回覆「是」。",
     ],
     confirmationResponse: ["資料已確認", "開始進行興趣探索"],
   },

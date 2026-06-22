@@ -20,7 +20,6 @@ function ExperimentContent() {
   const condition: Condition = CONDITIONS[conditionId] || CONDITIONS["human-high"];
   const isHuman = condition.agent === "human";
   const school = params.get("school") || "OO大學";
-  const dept = params.get("dept") || "OO系";
 
   const [phase, setPhase] = useState<"instruction" | "connecting" | "chat" | "done">("instruction");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -107,7 +106,7 @@ function ExperimentContent() {
       onDone();
       return;
     }
-    const text = texts[index].replace("{school}", school).replace("{dept}", dept);
+    const text = texts[index].replace("{school}", school);
     simulateTyping(text, () => {
       setMessages((prev) => [...prev, { role: "agent", text }]);
       if (index < texts.length - 1) {

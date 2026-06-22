@@ -6,15 +6,14 @@ import { useState } from "react";
 export default function Home() {
   const router = useRouter();
   const [school, setSchool] = useState("");
-  const [dept, setDept] = useState("");
 
   const handleSelect = (conditionId: string) => {
-    if (!school.trim() || !dept.trim()) {
-      alert("請填寫受試者的學校與系所");
+    if (!school.trim()) {
+      alert("請填寫受試者的學校/公司名稱");
       return;
     }
     router.push(
-      `/experiment?condition=${conditionId}&school=${encodeURIComponent(school.trim())}&dept=${encodeURIComponent(dept.trim())}`
+      `/experiment?condition=${conditionId}&school=${encodeURIComponent(school.trim())}`
     );
   };
 
@@ -30,16 +29,9 @@ export default function Home() {
           <p className="text-sm font-medium text-gray-600">受試者基本資料（真人組必填）</p>
           <input
             type="text"
-            placeholder="學校（例：台灣大學）"
+            placeholder="學校/公司名稱（例：台灣大學）"
             value={school}
             onChange={(e) => setSchool(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-300 focus:outline-none"
-          />
-          <input
-            type="text"
-            placeholder="系所（例：心理學系）"
-            value={dept}
-            onChange={(e) => setDept(e.target.value)}
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-300 focus:outline-none"
           />
         </div>
