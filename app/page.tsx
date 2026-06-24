@@ -13,7 +13,7 @@ export default function Home() {
       return;
     }
     router.push(
-      `/experiment?condition=${conditionId}&school=${encodeURIComponent(school.trim())}`
+      `/pre-questionnaire?condition=${conditionId}&school=${encodeURIComponent(school.trim())}`
     );
   };
 
