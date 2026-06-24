@@ -36,7 +36,7 @@ function SurveyContent() {
         }),
       });
       if (!res.ok) throw new Error("submit failed");
-      router.push(`/post-questionnaire?condition=${encodeURIComponent(conditionId)}`);
+      router.push("/complete");
     } catch {
       setSubmitError(true);
       setSubmitting(false);
