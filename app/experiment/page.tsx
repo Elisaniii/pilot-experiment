@@ -20,15 +20,19 @@ function ExperimentContent() {
   const condition: Condition = CONDITIONS[conditionId] || CONDITIONS["human-high"];
   const isHuman = condition.agent === "human";
   const school = params.get("school") || "OO大學";
+  const participantId = params.get("pid") || "";
 
   const [phase, setPhase] = useState<"instruction" | "connecting" | "chat" | "done">("instruction");
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const [questionIndex, setQuestionIndex] = useState(0);
+  const [turnIndex, setTurnIndex] = useState(0);
   const [canType, setCanType] = useState(false);
   const [greetingDone, setGreetingDone] = useState(false);
   const [connectingStep, setConnectingStep] = useState(0);
+
+  const chatHistoryRef = useRef<Array<{ role: "user" | "assistant"; content: string }>>([]);
 
   // 真人組專用：模擬連線過程的階段文字
   const connectingSteps = [
@@ -40,12 +44,14 @@ function ExperimentContent() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const lastKeyWasEnter = useRef(false);
+  const messagesRef = useRef<Message[]>([]);
 
   const scrollToBottom = () => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
+    messagesRef.current = messages;
     scrollToBottom();
   }, [messages, typing]);
 
@@ -169,33 +175,82 @@ function ExperimentContent() {
     // 確認基本資料後，送確認回應再開始第一題
     if (!greetingDone) {
       setGreetingDone(true);
+      setCanType(false);
       setTimeout(() => {
         addAgentMessages(condition.confirmationResponse || ["好的，那我們開始吧！"], () => {
-          setTimeout(() => addAgentMessage(PILOT_QUESTIONS[0]), 800);
+          setTimeout(() => {
+            chatHistoryRef.current.push({ role: "assistant", content: PILOT_QUESTIONS[0] });
+            addAgentMessage(PILOT_QUESTIONS[0]);
+          }, 800);
         });
       }, 500);
       return;
     }
 
-    const responses = MOCK_RESPONSES[conditionId] || MOCK_RESPONSES["ai-high"];
-    const currentQ = questionIndex;
+    // 立即鎖住輸入，顯示 loading 狀態
+    setCanType(false);
+    setTyping(true);
 
-    setTimeout(() => {
-      addAgentMessages(responses[currentQ], () => {
-        if (currentQ < PILOT_QUESTIONS.length - 1) {
-          const nextQ = currentQ + 1;
-          setTimeout(() => {
-            addAgentMessage(PILOT_QUESTIONS[nextQ], () => {
-              setQuestionIndex(nextQ);
-            });
-          }, 1200);
-        } else {
-          setTimeout(() => {
-            router.push(`/survey?condition=${conditionId}`);
-          }, 2500);
-        }
+    // 將使用者答案存入對話紀錄
+    chatHistoryRef.current.push({ role: "user", content: text });
+    const currentQ = questionIndex;
+    const currentTurnIndex = turnIndex;
+
+    const saveAndNavigate = () => {
+      fetch("/api/conversation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ participantId, condition: conditionId, messages: messagesRef.current }),
+      }).catch(() => {});
+      router.push(`/survey?condition=${conditionId}&pid=${participantId}`);
+    };
+
+    const advanceQuestion = () => {
+      if (currentQ < PILOT_QUESTIONS.length - 1) {
+        const nextQ = currentQ + 1;
+        setTurnIndex(0);
+        setTimeout(() => {
+          chatHistoryRef.current.push({ role: "assistant", content: PILOT_QUESTIONS[nextQ] });
+          addAgentMessages(["那我們先繼續下一題！", PILOT_QUESTIONS[nextQ]], () => { setQuestionIndex(nextQ); });
+        }, 1200);
+      } else {
+        setTimeout(saveAndNavigate, 2500);
+      }
+    };
+
+    const afterResponse = (responseText: string, hasFollowUp: boolean) => {
+      chatHistoryRef.current.push({ role: "assistant", content: responseText });
+      setTimeout(() => {
+        addAgentMessages([responseText], () => {
+          if (hasFollowUp) {
+            setTurnIndex(1);
+          } else {
+            advanceQuestion();
+          }
+        });
+      }, 300);
+    };
+
+    fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ conditionId, questionIndex: currentQ, turnIndex: currentTurnIndex, history: chatHistoryRef.current }),
+    })
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data) => {
+        setTyping(false);
+        const responseText = data.ok && data.response ? data.response : (MOCK_RESPONSES[conditionId]?.[currentQ]?.[0] ?? "謝謝你的分享。");
+        const hasFollowUp = data.ok ? (data.hasFollowUp ?? false) : false;
+        afterResponse(responseText, hasFollowUp);
+      })
+      .catch(() => {
+        setTyping(false);
+        const fallbackTexts = (MOCK_RESPONSES[conditionId] || MOCK_RESPONSES["ai-high"])[currentQ];
+        chatHistoryRef.current.push({ role: "assistant", content: fallbackTexts.join(" ") });
+        setTimeout(() => {
+          addAgentMessages(fallbackTexts, () => advanceQuestion());
+        }, 300);
       });
-    }, 500);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

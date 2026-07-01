@@ -7,11 +7,13 @@ function SurveyContent() {
   const params = useSearchParams();
   const router = useRouter();
   const conditionId = params.get("condition") || "";
+  const participantId = params.get("pid") || "";
 
   const [ratings, setRatings] = useState<(number | null)[]>(
     Array(SURVEY_ITEMS.length).fill(null)
   );
   const [openAnswer, setOpenAnswer] = useState("");
+  const [openAnswer2, setOpenAnswer2] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(false);
 
@@ -27,12 +29,14 @@ function SurveyContent() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          participantId,
           condition: conditionId,
           ratings: SURVEY_ITEMS.map((item, i) => ({
             item,
             score: ratings[i],
           })),
           openAnswer,
+          openAnswer2,
         }),
       });
       if (!res.ok) throw new Error("submit failed");
@@ -80,7 +84,7 @@ function SurveyContent() {
             </div>
           ))}
 
-          {/* 開放題 */}
+          {/* 開放題 1 */}
           <div className="rounded-xl bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-gray-700">
               {SURVEY_ITEMS.length + 1}. 請問你認為這次對話的目的是什麼？
@@ -90,6 +94,20 @@ function SurveyContent() {
               onChange={(e) => setOpenAnswer(e.target.value)}
               rows={4}
               placeholder="請輸入你的想法⋯⋯"
+              className="mt-3 w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-300 focus:outline-none"
+            />
+          </div>
+
+          {/* 開放題 2 */}
+          <div className="rounded-xl bg-white p-5 shadow-sm">
+            <p className="text-sm font-medium text-gray-700">
+              {SURVEY_ITEMS.length + 2}. 你對這次互動體驗有什麼感受？有哪些地方你覺得可以改善？
+            </p>
+            <textarea
+              value={openAnswer2}
+              onChange={(e) => setOpenAnswer2(e.target.value)}
+              rows={4}
+              placeholder="請輸入你的想法⋯⋯（選填）"
               className="mt-3 w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-300 focus:outline-none"
             />
           </div>
