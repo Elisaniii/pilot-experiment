@@ -210,12 +210,18 @@ function InstructionStep({ onNext }: { onNext: () => void }) {
       <h1 style={{ fontSize: 20, color: "#222", margin: "14px 0 20px" }}>填寫說明</h1>
       <div style={{ fontSize: 14, color: "#555", lineHeight: 1.9, marginBottom: 32 }}>
         <p style={{ margin: "0 0 10px" }}>接下來共有七個向度、98 個形容詞對，填寫分為兩個步驟：</p>
-        <p style={{ margin: "0 0 10px" }}>
+        <p style={{ margin: "0 0 6px" }}>
           <strong style={{ color: "#3a3a3a" }}>步驟一</strong>：瀏覽全部 98 個詞對，從中選出{" "}
           <strong style={{ color: "#3a3a3a" }}>10 個</strong>最能描述自己的詞對。
         </p>
-        <p style={{ margin: 0 }}>
+        <p style={{ margin: "0 0 10px", color: "#888" }}>
+          有可能是你覺得其中一個極端是最符合你的、有可能是你覺得兩個極端都是符合你的特質。
+        </p>
+        <p style={{ margin: "0 0 6px" }}>
           <strong style={{ color: "#3a3a3a" }}>步驟二</strong>：針對選出的 10 個詞對，在每對之間選擇最符合您的位置。
+        </p>
+        <p style={{ margin: 0, color: "#888" }}>
+          評分標準為 1-5 分（例如：內向 ↔ 外向，1 = 非常偏內向，3 = 中間，5 = 非常偏外向）。
         </p>
       </div>
       <button onClick={onNext} style={{ ...S.btnNext(false), width: "100%" }}>
@@ -409,7 +415,7 @@ function RatingStep({
                         userSelect: "none" as const,
                       }}
                     >
-                      {Math.abs(v)}
+                      {v + 3}
                     </span>
                   );
                 })}
