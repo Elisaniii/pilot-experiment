@@ -34,7 +34,11 @@ function buildSystemPrompt(conditionId: string, questionIndex: number, turnIndex
   } else if (isLastQuestion) {
     taskDesc = `你剛才問了受試者：「${currentQuestion}」\n請根據受試者的回答給予自然的回應（1-2 句話），可選擇性追問一個相關問題（例如請他們舉例或補充說明）。若你決定追問，設 followUp 為 true；若不追問，給予適當的結束語感謝他們的分享，設 followUp 為 false。\n\n請以下列 JSON 格式回應，不要加其他文字：{"text": "你的回應", "followUp": true 或 false}`;
   } else {
-    taskDesc = `你剛才問了受試者：「${currentQuestion}」\n請根據受試者的回答給予自然的回應（1-2 句話），可選擇性追問一個相關問題（例如請他們舉例或補充說明）。若你決定追問，設 followUp 為 true；若不追問，設 followUp 為 false。不要問下一道制式問題。\n\n請以下列 JSON 格式回應，不要加其他文字：{"text": "你的回應", "followUp": true 或 false}`;
+    const firstQuestionNote =
+      questionIndex === 0
+        ? "\n\n特別注意：若受試者的回覆其實是在反問你想了解什麼（而不是實際自我介紹，例如「你想了解我什麼呢？」），請簡短說明你想了解的方向（例如個性、興趣、經驗都可以），鼓勵他們自由分享，並務必將 followUp 設為 true，讓他們有機會實際回答。"
+        : "";
+    taskDesc = `你剛才問了受試者：「${currentQuestion}」\n請根據受試者的回答給予自然的回應（1-2 句話），可選擇性追問一個相關問題（例如請他們舉例或補充說明）。若你決定追問，設 followUp 為 true；若不追問，設 followUp 為 false。不要問下一道制式問題。${firstQuestionNote}\n\n請以下列 JSON 格式回應，不要加其他文字：{"text": "你的回應", "followUp": true 或 false}`;
   }
 
   return `${personaDesc}\n\n${evalContext}\n\n${toneDesc}\n\n${taskDesc}\n\n請用繁體中文回應。text 欄位的長度控制在 1-2 句話，不要過長。`;
