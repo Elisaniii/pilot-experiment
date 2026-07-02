@@ -104,5 +104,10 @@ export async function POST(request: Request) {
     } catch {}
   }
 
+  // turnIndex === 1 表示已經追問過一次，這一輪一定要收尾，不管模型回傳什麼都強制不再追問
+  if (turnIndex === 1) {
+    hasFollowUp = false;
+  }
+
   return NextResponse.json({ ok: true, response: responseText, hasFollowUp });
 }

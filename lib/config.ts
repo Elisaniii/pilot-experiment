@@ -27,7 +27,7 @@ export const CONDITIONS: Record<string, Condition> = {
     greetings: [
       "你好，我是職涯中心的戴文琴顧問，很高興今天能跟你聊聊。",
       "感謝你願意參加這次的對談，我們會透過幾個問題來了解你，過程中不需要緊張，輕鬆地分享就好。",
-      "首先先確認一下基本的資料，你目前是來自{school}對嗎？",
+      "首先先確認一下基本的資料，你是來自{school}對嗎？",
     ],
     confirmationResponse: ["好的，那我們開始吧！"],
   },
@@ -43,7 +43,7 @@ export const CONDITIONS: Record<string, Condition> = {
     greetings: [
       "你好，我是課活組的戴文琴顧問，很高興今天能跟你聊聊。",
       "感謝你願意參加這次的對談，我們會透過幾個問題來了解你，過程中不需要緊張，輕鬆地分享就好。",
-      "首先先確認一下基本的資料，你目前是來自{school}對嗎？",
+      "首先先確認一下基本的資料，你是來自{school}對嗎？",
     ],
     confirmationResponse: ["好的，那我們開始吧！"],
   },
@@ -59,7 +59,7 @@ export const CONDITIONS: Record<string, Condition> = {
     greetings: [
       "你好，我是職涯中心的 CareerBot，很高興今天能跟你聊聊。",
       "感謝你願意參加這次的對談，我們會透過幾個問題來了解你，過程中不需要緊張，輕鬆地分享就好。",
-      "首先先確認一下基本的資料，你目前是來自{school}對嗎？",
+      "首先先確認一下基本的資料，你是來自{school}對嗎？",
     ],
     confirmationResponse: ["好的，那我們開始吧！"],
   },
@@ -75,7 +75,7 @@ export const CONDITIONS: Record<string, Condition> = {
     greetings: [
       "你好，我是課活組的 MatchBot，很高興今天能跟你聊聊。",
       "感謝你願意參加這次的對談，我們會透過幾個問題來了解你，過程中不需要緊張，輕鬆地分享就好。",
-      "首先先確認一下基本的資料，你目前是來自{school}對嗎？",
+      "首先先確認一下基本的資料，你是來自{school}對嗎？",
     ],
     confirmationResponse: ["好的，那我們開始吧！"],
   },
