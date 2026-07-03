@@ -15,7 +15,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "invalid payload" }, { status: 400 });
   }
 
-  const VALID_CONDITIONS = ["human-high", "human-low", "ai-high", "ai-low"];
+  const VALID_CONDITIONS = [
+    "human-high",
+    "human-low",
+    "human-icon-high",
+    "human-icon-low",
+    "ai-high",
+    "ai-low",
+  ];
   if (!VALID_CONDITIONS.includes(condition)) {
     return NextResponse.json({ ok: false, error: "invalid condition" }, { status: 400 });
   }

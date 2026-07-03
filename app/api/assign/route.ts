@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/firebaseAdmin";
 
-const CONDITION_IDS = ["human-high", "human-low", "ai-high", "ai-low"];
+const CONDITION_IDS = [
+  "human-high",
+  "human-low",
+  "human-icon-high",
+  "human-icon-low",
+  "ai-high",
+  "ai-low",
+];
 
 export async function POST(request: Request) {
   const body = await request.json();
