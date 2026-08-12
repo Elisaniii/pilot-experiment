@@ -9,7 +9,7 @@ export default function Home() {
   const [errorMsg, setErrorMsg] = useState("");
 
   const handleStart = async () => {
-    if (participantId.length !== 4) return;
+    if (participantId.length !== 8) return;
     setStatus("loading");
     setErrorMsg("");
     try {
@@ -46,10 +46,10 @@ export default function Home() {
             <input
               type="text"
               inputMode="numeric"
-              placeholder="受試者 ID（手機末四碼）"
+              placeholder="受試者 ID（手機末四碼＋出生月日，共 8 碼）"
               value={participantId}
               onChange={(e) => {
-                setParticipantId(e.target.value.replace(/\D/g, "").slice(0, 4));
+                setParticipantId(e.target.value.replace(/\D/g, "").slice(0, 8));
                 setStatus("idle");
                 setErrorMsg("");
               }}
@@ -57,7 +57,7 @@ export default function Home() {
             />
             <button
               onClick={handleStart}
-              disabled={participantId.length !== 4 || status === "loading"}
+              disabled={participantId.length !== 8 || status === "loading"}
               className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-40"
             >
               {status === "loading" ? "處理中⋯" : "開始"}

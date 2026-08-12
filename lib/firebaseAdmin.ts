@@ -21,5 +21,8 @@ function getAdminApp(): App {
 }
 
 export function getDb() {
-  return getFirestore(getAdminApp());
+  const databaseId = process.env.FIRESTORE_DATABASE_ID;
+  return databaseId
+    ? getFirestore(getAdminApp(), databaseId)
+    : getFirestore(getAdminApp());
 }
