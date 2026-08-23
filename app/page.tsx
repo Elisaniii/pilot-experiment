@@ -13,7 +13,9 @@ export default function Home() {
       const res = await fetch("/api/assign", { method: "POST" });
       const data = await res.json();
       if (data.ok) {
-        router.push(`/experiment?condition=${data.conditionId}`);
+        // 分組結果存在 sessionStorage，不放進網址，避免受試者看到條件
+        sessionStorage.setItem("pilotCondition", data.conditionId);
+        router.push("/experiment");
       } else {
         setStatus("error");
       }

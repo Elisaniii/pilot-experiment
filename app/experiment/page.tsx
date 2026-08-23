@@ -1,6 +1,6 @@
 "use client";
-import { useSearchParams, useRouter } from "next/navigation";
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   CONDITIONS,
   PILOT_QUESTIONS,
@@ -13,13 +13,11 @@ interface Message {
   text: string;
 }
 
-function ExperimentContent() {
-  const params = useSearchParams();
+function ExperimentContent({ conditionId }: { conditionId: string }) {
   const router = useRouter();
-  const conditionId = params.get("condition") || "human-high";
-  const condition: Condition = CONDITIONS[conditionId] || CONDITIONS["human-high"];
+  const condition: Condition = CONDITIONS[conditionId] || CONDITIONS["ai-high"];
   const isHuman = condition.agent === "human";
-  const participantId = params.get("pid") || "";
+  const participantId = "";
 
   const [phase, setPhase] = useState<"instruction" | "connecting" | "chat" | "done">("instruction");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -187,7 +185,7 @@ function ExperimentContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ participantId, condition: conditionId, messages: messagesRef.current }),
       }).catch(() => {});
-      router.push(`/survey?condition=${conditionId}`);
+      router.push("/survey");
     };
 
     const advanceQuestion = () => {
@@ -410,9 +408,24 @@ function ExperimentContent() {
 }
 
 export default function ExperimentPage() {
-  return (
-    <Suspense fallback={<div className="flex min-h-screen items-center justify-center text-gray-400">載入中⋯⋯</div>}>
-      <ExperimentContent />
-    </Suspense>
-  );
+  const router = useRouter();
+  const [conditionId, setConditionId] = useState<string | null>(null);
+  const [checked, setChecked] = useState(false);
+
+  // 從 sessionStorage 讀取分組，不再經由網址傳遞，避免在網址列洩漏條件
+  useEffect(() => {
+    const c = sessionStorage.getItem("pilotCondition");
+    if (c && CONDITIONS[c]) setConditionId(c);
+    setChecked(true);
+  }, []);
+
+  // 沒有有效分組（例如直接開網址進來）→ 導回首頁重新分配
+  useEffect(() => {
+    if (checked && !conditionId) router.replace("/");
+  }, [checked, conditionId, router]);
+
+  if (!conditionId) {
+    return <div className="flex min-h-screen items-center justify-center text-gray-400">載入中⋯⋯</div>;
+  }
+  return <ExperimentContent conditionId={conditionId} />;
 }

@@ -1,5 +1,5 @@
 "use client";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { EVAL_CONTEXT_ITEMS, SELF_PRESENTATION_ITEMS, LIKERT_LABELS } from "@/lib/config";
 
@@ -20,16 +20,21 @@ function buildShuffledItems(): SurveyItem[] {
 }
 
 function SurveyContent() {
-  const params = useSearchParams();
   const router = useRouter();
-  const conditionId = params.get("condition") || "";
+  const [conditionId, setConditionId] = useState("");
 
-  // 洗牌只在 client 端掛載後執行一次：避免 SSR 與 client 的 Math.random
-  // 產生不同順序而造成 hydration 不一致。作答期間順序固定。
+  // 掛載後才讀取：分組改由 sessionStorage 傳遞（不經網址），
+  // 同時洗牌也放在 client 端，避免 SSR/client 的 Math.random 造成 hydration 不一致。
   const [items, setItems] = useState<SurveyItem[]>([]);
   useEffect(() => {
+    const c = sessionStorage.getItem("pilotCondition");
+    if (!c) {
+      router.replace("/");
+      return;
+    }
+    setConditionId(c);
     setItems(buildShuffledItems());
-  }, []);
+  }, [router]);
 
   const [ratings, setRatings] = useState<Record<string, number>>({});
   const [submitting, setSubmitting] = useState(false);
