@@ -265,9 +265,9 @@ export default function OperatorPage() {
                 >
                   {drafting ? "生成中⋯" : currentType === "llm" ? "AI 生成草稿" : "AI 生成草稿（備用）"}
                 </button>
-                <span className="ml-2 text-xs text-gray-400">
-                  {currentType === "llm" ? "生成後可編輯再送出" : "詞窮時可參考，平時請自行回覆"}
-                </span>
+                {currentType === "llm" && (
+                  <span className="ml-2 text-xs text-gray-400">生成後可編輯再送出</span>
+                )}
               </div>
               <div className="flex items-end gap-2">
                 <textarea
