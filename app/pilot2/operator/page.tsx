@@ -22,6 +22,8 @@ export default function OperatorPage() {
   const [creating, setCreating] = useState(false);
   const [copied, setCopied] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const typingSentRef = useRef(false);
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const createSession = async () => {
     setCreating(true);
@@ -71,10 +73,41 @@ export default function OperatorPage() {
     });
   };
 
+  // 打字狀態同步：研究者打字時通知受試者端顯示「打字中⋯」，停止 2 秒或送出後清除
+  const postTyping = (typing: boolean) => {
+    if (!code) return;
+    fetch("/api/pilot2/typing", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code, typing }),
+    }).catch(() => {});
+  };
+
+  const signalTyping = () => {
+    if (!typingSentRef.current) {
+      typingSentRef.current = true;
+      postTyping(true);
+    }
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    idleTimerRef.current = setTimeout(() => {
+      typingSentRef.current = false;
+      postTyping(false);
+    }, 2000);
+  };
+
+  const stopTyping = () => {
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    if (typingSentRef.current) {
+      typingSentRef.current = false;
+      postTyping(false);
+    }
+  };
+
   const send = async () => {
     const t = input.trim();
     if (!t || !code || !slot) return;
     setInput("");
+    stopTyping();
     await fetch("/api/pilot2/message", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -85,6 +118,7 @@ export default function OperatorPage() {
   const genDraft = async () => {
     if (!code) return;
     setDrafting(true);
+    signalTyping(); // 生成期間也讓受試者看到「打字中⋯」
     try {
       const res = await fetch("/api/pilot2/draft", {
         method: "POST",
@@ -92,7 +126,10 @@ export default function OperatorPage() {
         body: JSON.stringify({ code }),
       });
       const j = await res.json();
-      if (j.ok) setInput(j.draft);
+      if (j.ok) {
+        setInput(j.draft);
+        signalTyping(); // 草稿出現後再延續打字狀態，讓研究者有時間審閱
+      }
     } catch {}
     setDrafting(false);
   };
@@ -237,6 +274,8 @@ export default function OperatorPage() {
                   value={input}
                   onChange={(e) => {
                     setInput(e.target.value);
+                    if (e.target.value.trim()) signalTyping();
+                    else stopTyping();
                     e.target.style.height = "auto";
                     e.target.style.height = `${e.target.scrollHeight}px`;
                   }}

@@ -38,6 +38,9 @@ export async function POST(request: Request) {
     ts: Date.now(),
   };
 
-  await ref.update({ messages: FieldValue.arrayUnion(message) });
+  const update: Record<string, unknown> = { messages: FieldValue.arrayUnion(message) };
+  // 顧問送出訊息後，清掉打字中狀態
+  if (from === "operator") update.operatorTyping = false;
+  await ref.update(update);
   return NextResponse.json({ ok: true });
 }

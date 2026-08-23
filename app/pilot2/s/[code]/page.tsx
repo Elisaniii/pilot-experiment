@@ -8,6 +8,7 @@ type PData = {
   slot: number | null;
   advisor: { name: string; avatar: string } | null;
   messages: Msg[];
+  operatorTyping?: boolean;
 };
 
 export default function ParticipantSessionPage() {
@@ -49,7 +50,8 @@ export default function ParticipantSessionPage() {
   const last = messages[messages.length - 1];
   const inConv = phase === "conv1" || phase === "conv2";
   const canType = !!(inConv && last && last.role === "agent" && !sending);
-  const waiting = !!(inConv && (!last || last.role === "user"));
+  // 打字中動畫跟著研究者實際打字狀態顯示（而非只看回合）
+  const waiting = !!(inConv && data?.operatorTyping);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });

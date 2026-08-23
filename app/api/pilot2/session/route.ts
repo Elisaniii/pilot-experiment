@@ -34,6 +34,7 @@ export async function POST() {
     advisorOrder, // [第一段類型, 第二段類型]
     phase: "waiting",
     messages: [],
+    operatorTyping: false,
     createdAt: FieldValue.serverTimestamp(),
   });
 
@@ -55,7 +56,12 @@ export async function GET(request: Request) {
     return NextResponse.json({ ok: false, error: "not found" }, { status: 404 });
   }
 
-  const data = doc.data() as { phase: string; advisorOrder: string[]; messages?: Msg[] };
+  const data = doc.data() as {
+    phase: string;
+    advisorOrder: string[];
+    messages?: Msg[];
+    operatorTyping?: boolean;
+  };
   const phase = data.phase;
   const messages = data.messages || [];
 
@@ -68,5 +74,12 @@ export async function GET(request: Request) {
   const advisor = slot ? PILOT2_ADVISORS[slot - 1] : null;
   const slotMessages = slot ? messages.filter((m) => m.advisorSlot === slot) : [];
 
-  return NextResponse.json({ ok: true, phase, slot, advisor, messages: slotMessages });
+  return NextResponse.json({
+    ok: true,
+    phase,
+    slot,
+    advisor,
+    messages: slotMessages,
+    operatorTyping: !!data.operatorTyping,
+  });
 }
