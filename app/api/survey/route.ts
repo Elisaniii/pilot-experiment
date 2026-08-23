@@ -6,14 +6,13 @@ const VALID_CONDITIONS = ["ai-high", "ai-low"];
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { condition, evalRatings, normRatings, openAnswer } = body;
+  const { condition, evalRatings, normRatings } = body;
 
   if (
     typeof condition !== "string" ||
     !VALID_CONDITIONS.includes(condition) ||
     !Array.isArray(evalRatings) ||
-    !Array.isArray(normRatings) ||
-    typeof openAnswer !== "string"
+    !Array.isArray(normRatings)
   ) {
     return NextResponse.json({ ok: false, error: "invalid payload" }, { status: 400 });
   }
@@ -22,7 +21,6 @@ export async function POST(request: Request) {
     condition,
     evalRatings, // 評價情境操弄確認量表（7 題）
     normRatings, // 自我呈現規範約束量表（4 題，第 4 題為反向題）
-    openAnswer,
     timestamp: FieldValue.serverTimestamp(),
   };
 
