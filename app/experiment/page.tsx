@@ -199,7 +199,8 @@ function ExperimentContent() {
           addAgentMessages(["那我們先繼續下一題！", PILOT_QUESTIONS[nextQ]], () => { setQuestionIndex(nextQ); });
         }, 1200);
       } else {
-        setTimeout(saveAndNavigate, 2500);
+        // 三題都答完、收尾訊息出現後，多停留一段時間再跳問卷頁
+        setTimeout(saveAndNavigate, 6000);
       }
     };
 
