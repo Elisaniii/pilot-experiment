@@ -1,6 +1,6 @@
 "use client";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { EVAL_CONTEXT_ITEMS, SELF_PRESENTATION_ITEMS, LIKERT_LABELS } from "@/lib/config";
 
 type SurveyItem = { id: string; text: string };
@@ -24,13 +24,18 @@ function SurveyContent() {
   const router = useRouter();
   const conditionId = params.get("condition") || "";
 
-  // useState 初始化函式：只在首次掛載時洗牌一次，作答期間順序固定
-  const [items] = useState<SurveyItem[]>(buildShuffledItems);
+  // 洗牌只在 client 端掛載後執行一次：避免 SSR 與 client 的 Math.random
+  // 產生不同順序而造成 hydration 不一致。作答期間順序固定。
+  const [items, setItems] = useState<SurveyItem[]>([]);
+  useEffect(() => {
+    setItems(buildShuffledItems());
+  }, []);
+
   const [ratings, setRatings] = useState<Record<string, number>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(false);
 
-  const allAnswered = items.every((it) => ratings[it.id] !== undefined);
+  const allAnswered = items.length > 0 && items.every((it) => ratings[it.id] !== undefined);
 
   const handleSubmit = async () => {
     if (!allAnswered || submitting) return;
@@ -54,6 +59,14 @@ function SurveyContent() {
       setSubmitting(false);
     }
   };
+
+  if (items.length === 0) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-gray-400">
+        載入中⋯⋯
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-8">
