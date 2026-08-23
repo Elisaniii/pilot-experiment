@@ -257,18 +257,18 @@ export default function OperatorPage() {
           {/* 輸入區 */}
           {slot && (
             <div className="border-t px-4 py-3">
-              {currentType === "llm" && (
-                <div className="mb-2">
-                  <button
-                    onClick={genDraft}
-                    disabled={drafting}
-                    className="rounded-lg bg-amber-100 px-3 py-1.5 text-xs font-medium text-amber-800 hover:bg-amber-200 disabled:opacity-50"
-                  >
-                    {drafting ? "生成中⋯" : "AI 生成草稿"}
-                  </button>
-                  <span className="ml-2 text-xs text-gray-400">生成後可編輯再送出</span>
-                </div>
-              )}
+              <div className="mb-2">
+                <button
+                  onClick={genDraft}
+                  disabled={drafting}
+                  className="rounded-lg bg-amber-100 px-3 py-1.5 text-xs font-medium text-amber-800 hover:bg-amber-200 disabled:opacity-50"
+                >
+                  {drafting ? "生成中⋯" : currentType === "llm" ? "AI 生成草稿" : "AI 生成草稿（備用）"}
+                </button>
+                <span className="ml-2 text-xs text-gray-400">
+                  {currentType === "llm" ? "生成後可編輯再送出" : "詞窮時可參考，平時請自行回覆"}
+                </span>
+              </div>
               <div className="flex items-end gap-2">
                 <textarea
                   value={input}
