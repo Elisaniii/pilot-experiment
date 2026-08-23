@@ -20,6 +20,7 @@ export default function ParticipantSessionPage() {
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const lastKeyWasEnter = useRef(false);
 
   useEffect(() => {
     if (!code) return;
@@ -71,6 +72,21 @@ export default function ParticipantSessionPage() {
       });
     } catch {}
     setSending(false);
+  };
+
+  // 與前導一一致：連按兩次 Enter 才送出（Shift+Enter 換行）
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      if (lastKeyWasEnter.current) {
+        lastKeyWasEnter.current = false;
+        send();
+      } else {
+        lastKeyWasEnter.current = true;
+      }
+    } else {
+      lastKeyWasEnter.current = false;
+    }
   };
 
   if (notFound) {
@@ -164,13 +180,8 @@ export default function ParticipantSessionPage() {
               e.target.style.height = "auto";
               e.target.style.height = `${e.target.scrollHeight}px`;
             }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                send();
-              }
-            }}
-            placeholder={canType ? "輸入你的回答⋯⋯（Enter 送出）" : "請稍候⋯⋯"}
+            onKeyDown={handleKeyDown}
+            placeholder={canType ? "輸入你的回答⋯⋯（按兩次 Enter 送出）" : "請稍候⋯⋯"}
             disabled={!canType}
             rows={1}
             className="max-h-40 flex-1 resize-none overflow-y-auto rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:border-blue-300 focus:outline-none disabled:bg-gray-50 disabled:text-gray-400"
