@@ -61,12 +61,19 @@ export async function GET(request: Request) {
     advisorOrder: string[];
     messages?: Msg[];
     operatorTyping?: boolean;
+    result?: Record<string, unknown> | null;
   };
   const phase = data.phase;
   const messages = data.messages || [];
 
   if (role === "operator") {
-    return NextResponse.json({ ok: true, phase, advisorOrder: data.advisorOrder, messages });
+    return NextResponse.json({
+      ok: true,
+      phase,
+      advisorOrder: data.advisorOrder,
+      messages,
+      result: data.result ?? null,
+    });
   }
 
   // 受試者版：只回目前這位顧問的資訊與訊息，且絕不回傳 advisorOrder（避免洩漏誰是 AI）

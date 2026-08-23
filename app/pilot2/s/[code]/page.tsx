@@ -1,6 +1,7 @@
 "use client";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { PILOT2_ADVISORS } from "@/lib/config";
 
 type Msg = { advisorSlot: number; role: string; text: string; ts: number };
 type PData = {
@@ -19,6 +20,15 @@ export default function ParticipantSessionPage() {
   const [notFound, setNotFound] = useState(false);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+
+  // 辨別任務（phase = postchat）本地狀態
+  const [postStep, setPostStep] = useState<"open" | "choose">("open");
+  const [postOpen, setPostOpen] = useState("");
+  const [guess, setGuess] = useState<1 | 2 | null>(null);
+  const [postSubmitting, setPostSubmitting] = useState(false);
+  const [postDone, setPostDone] = useState(false);
+  const [postError, setPostError] = useState(false);
+
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const lastKeyWasEnter = useRef(false);
@@ -76,6 +86,24 @@ export default function ParticipantSessionPage() {
     setSending(false);
   };
 
+  const submitResult = async () => {
+    if (guess == null || postSubmitting) return;
+    setPostSubmitting(true);
+    setPostError(false);
+    try {
+      const res = await fetch("/api/pilot2/result", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, openAnswer: postOpen, guessSlot: guess }),
+      });
+      if (!res.ok) throw new Error();
+      setPostDone(true);
+    } catch {
+      setPostError(true);
+      setPostSubmitting(false);
+    }
+  };
+
   // 與前導一一致：連按兩次 Enter 才送出（Shift+Enter 換行）
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -103,12 +131,96 @@ export default function ParticipantSessionPage() {
     return <div className="flex min-h-screen items-center justify-center text-gray-400">載入中⋯⋯</div>;
   }
 
-  // 等待 / 過場 / 結束等非對話階段
+  // 完成：已送出辨別任務
+  if (postDone || phase === "done") {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="w-full max-w-lg space-y-3 rounded-2xl bg-white p-8 text-center shadow-sm">
+          <h1 className="text-xl font-semibold text-gray-800">感謝你的參與！</h1>
+          <p className="text-sm text-gray-500">本次對話與問題已完成，你可以關閉此頁面。</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 辨別任務：兩段對話結束（postchat）後，由受試者自行作答
+  if (phase === "postchat") {
+    return (
+      <div className="min-h-screen bg-gray-50 px-4 py-10">
+        <div className="mx-auto max-w-xl space-y-6">
+          <p className="text-sm text-gray-500">對話結束了，最後想請你回答兩個問題。</p>
+
+          {postStep === "open" && (
+            <div className="space-y-4 rounded-2xl bg-white p-6 shadow-sm">
+              <p className="text-sm font-medium text-gray-700">
+                1. 你認為這兩位顧問（陳顧問、林顧問）有什麼不同？
+              </p>
+              <textarea
+                value={postOpen}
+                onChange={(e) => setPostOpen(e.target.value)}
+                rows={5}
+                placeholder="請輸入你的想法⋯⋯"
+                className="w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-300 focus:outline-none"
+              />
+              <button
+                onClick={() => setPostStep("choose")}
+                disabled={postOpen.trim().length === 0}
+                className="w-full rounded-xl bg-blue-600 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:bg-gray-300"
+              >
+                下一題
+              </button>
+            </div>
+          )}
+
+          {postStep === "choose" && (
+            <div className="space-y-4 rounded-2xl bg-white p-6 shadow-sm">
+              <p className="text-sm font-medium text-gray-700">
+                2. 兩位顧問中，有一位的回應並非由真人產生，你認為是哪一位？
+              </p>
+              <div className="space-y-3">
+                {PILOT2_ADVISORS.map((a) => (
+                  <button
+                    key={a.slot}
+                    onClick={() => setGuess(a.slot as 1 | 2)}
+                    className={`w-full rounded-xl border px-4 py-3 text-sm font-medium transition ${
+                      guess === a.slot
+                        ? "border-blue-400 bg-blue-50 text-blue-700"
+                        : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                    }`}
+                  >
+                    {a.name}
+                  </button>
+                ))}
+              </div>
+              {postError && (
+                <p className="text-center text-sm text-red-500">提交失敗，請檢查網路後再試一次。</p>
+              )}
+              <button
+                onClick={submitResult}
+                disabled={guess == null || postSubmitting}
+                className="w-full rounded-xl bg-blue-600 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:bg-gray-300"
+              >
+                {postSubmitting ? "提交中⋯⋯" : "提交"}
+              </button>
+              <button
+                onClick={() => setPostStep("open")}
+                className="w-full text-center text-xs text-gray-400 hover:text-gray-600"
+              >
+                返回上一題
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // 等待 / 過場
   if (!inConv) {
-    let text = "";
-    if (phase === "waiting") text = "正在等待顧問上線⋯";
-    else if (phase === "transition") text = "第一段對話結束，準備與下一位顧問對話⋯";
-    else text = "對話結束，請稍候⋯";
+    const text =
+      phase === "waiting"
+        ? "正在等待顧問上線⋯"
+        : "第一段對話結束，準備與下一位顧問對話⋯";
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-lg rounded-2xl bg-white p-8 text-center shadow-sm">

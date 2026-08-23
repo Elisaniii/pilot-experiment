@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { PILOT2_ADVISORS, PILOT2_QUESTIONS_A, PILOT2_QUESTIONS_B } from "@/lib/config";
 
 type Msg = { advisorSlot: number; role: string; text: string; ts: number };
-type SessionData = { phase: string; advisorOrder: string[]; messages: Msg[] };
+type Result = { openAnswer: string; guessSlot: number; actualAiSlot: number; correct: boolean; ts: number };
+type SessionData = { phase: string; advisorOrder: string[]; messages: Msg[]; result: Result | null };
 
 const NEXT_PHASE: Record<string, { to: string; label: string } | null> = {
   waiting: { to: "conv1", label: "開始第一段對話（陳顧問）" },
@@ -42,7 +43,8 @@ export default function OperatorPage() {
       try {
         const res = await fetch(`/api/pilot2/session?code=${code}&role=operator`);
         const j = await res.json();
-        if (active && j.ok) setData({ phase: j.phase, advisorOrder: j.advisorOrder, messages: j.messages || [] });
+        if (active && j.ok)
+          setData({ phase: j.phase, advisorOrder: j.advisorOrder, messages: j.messages || [], result: j.result ?? null });
       } catch {}
     };
     tick();
@@ -59,6 +61,7 @@ export default function OperatorPage() {
   const advisor = slot ? PILOT2_ADVISORS[slot - 1] : null;
   const questions = slot === 1 ? PILOT2_QUESTIONS_A : slot === 2 ? PILOT2_QUESTIONS_B : [];
   const slotMessages = data ? data.messages.filter((m) => (slot ? m.advisorSlot === slot : false)) : [];
+  const slotName = (s: number) => PILOT2_ADVISORS[s - 1]?.name ?? `第 ${s} 位`;
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -210,8 +213,9 @@ export default function OperatorPage() {
               </button>
             )}
             {phase === "postchat" && (
-              <span className="ml-auto text-xs text-gray-400">辨別任務為階段二，稍後建置</span>
+              <span className="ml-auto text-xs text-gray-400">等待受試者完成辨別任務⋯</span>
             )}
+            {phase === "done" && <span className="ml-auto text-xs text-emerald-600">受試者已完成</span>}
           </div>
         </div>
       </div>
@@ -233,12 +237,30 @@ export default function OperatorPage() {
         {/* 對話區 */}
         <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white">
           <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
-            {!slot && (
+            {!slot && phase !== "done" && (
               <p className="mt-10 text-center text-sm text-gray-400">
                 {phase === "waiting" && "按上方「開始第一段對話」後即可開始"}
                 {phase === "transition" && "過場中，按「開始第二段對話」繼續"}
-                {(phase === "postchat" || phase === "done") && "對話已結束"}
+                {phase === "postchat" && "對話已結束，等待受試者完成辨別任務⋯"}
               </p>
+            )}
+            {phase === "done" && data?.result && (
+              <div className="mx-auto mt-8 max-w-md space-y-2 rounded-xl border border-gray-200 p-5 text-sm">
+                <p className="font-semibold text-gray-700">辨別任務結果</p>
+                <p className="text-gray-600">
+                  受試者認為「非真人」的是：<span className="font-medium">{slotName(data.result.guessSlot)}</span>
+                </p>
+                <p className="text-gray-600">
+                  實際上是 AI 的是：<span className="font-medium">{slotName(data.result.actualAiSlot)}</span>
+                </p>
+                <p className="text-gray-700">
+                  判斷：{data.result.correct ? "正確（辨認出 AI）" : "錯誤（未辨認出 AI）"}
+                </p>
+                <div className="mt-2 rounded-lg bg-gray-50 p-3 text-gray-600">
+                  <p className="mb-1 text-xs font-medium text-gray-500">開放題「兩位顧問有什麼不同」</p>
+                  <p className="whitespace-pre-wrap">{data.result.openAnswer || "（未填寫）"}</p>
+                </div>
+              </div>
             )}
             {slotMessages.map((m, i) => (
               <div key={i} className={`flex ${m.role === "agent" ? "justify-end" : "justify-start"}`}>
