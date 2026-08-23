@@ -17,6 +17,7 @@ const NEXT_PHASE: Record<string, { to: string; label: string } | null> = {
 
 export default function OperatorPage() {
   const [code, setCode] = useState<string | null>(null);
+  const [restoring, setRestoring] = useState(true);
   const [data, setData] = useState<SessionData | null>(null);
   const [input, setInput] = useState("");
   const [drafting, setDrafting] = useState(false);
@@ -31,10 +32,35 @@ export default function OperatorPage() {
     try {
       const res = await fetch("/api/pilot2/session", { method: "POST" });
       const j = await res.json();
-      if (j.ok) setCode(j.code);
+      if (j.ok) {
+        setCode(j.code);
+        localStorage.setItem("pilot2OperatorCode", j.code); // 記住場次，重整後可接回
+      }
     } catch {}
     setCreating(false);
   };
+
+  // 重整 / 重開瀏覽器後，自動接回上次尚存在的場次
+  useEffect(() => {
+    const saved = localStorage.getItem("pilot2OperatorCode");
+    if (!saved) {
+      setRestoring(false);
+      return;
+    }
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch(`/api/pilot2/session?code=${saved}&role=operator`);
+        const j = res.ok ? await res.json() : null;
+        if (active && j?.ok) setCode(saved);
+        else localStorage.removeItem("pilot2OperatorCode");
+      } catch {}
+      if (active) setRestoring(false);
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!code) return;
@@ -144,6 +170,10 @@ export default function OperatorPage() {
     setTimeout(() => setCopied(false), 1500);
   };
 
+  if (restoring) {
+    return <div className="flex min-h-screen items-center justify-center text-gray-400">載入中⋯⋯</div>;
+  }
+
   // ── 尚未建立場次 ──
   if (!code) {
     return (
@@ -184,6 +214,13 @@ export default function OperatorPage() {
                 {copied ? "已複製" : "複製連結"}
               </button>
             </div>
+            <button
+              onClick={createSession}
+              disabled={creating}
+              className="ml-auto rounded-lg border border-gray-200 px-3 py-1 text-xs text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+            >
+              {creating ? "建立中⋯" : "＋ 新場次"}
+            </button>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
