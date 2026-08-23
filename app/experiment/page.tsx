@@ -19,7 +19,6 @@ function ExperimentContent() {
   const conditionId = params.get("condition") || "human-high";
   const condition: Condition = CONDITIONS[conditionId] || CONDITIONS["human-high"];
   const isHuman = condition.agent === "human";
-  const school = params.get("school") || "OO大學";
   const participantId = params.get("pid") || "";
 
   const [phase, setPhase] = useState<"instruction" | "connecting" | "chat" | "done">("instruction");
@@ -29,7 +28,6 @@ function ExperimentContent() {
   const [questionIndex, setQuestionIndex] = useState(0);
   const [turnIndex, setTurnIndex] = useState(0);
   const [canType, setCanType] = useState(false);
-  const [greetingDone, setGreetingDone] = useState(false);
   const [connectingStep, setConnectingStep] = useState(0);
 
   const chatHistoryRef = useRef<Array<{ role: "user" | "assistant"; content: string }>>([]);
@@ -112,7 +110,7 @@ function ExperimentContent() {
       onDone();
       return;
     }
-    const text = texts[index].replace("{school}", school);
+    const text = texts[index];
     simulateTyping(text, () => {
       setMessages((prev) => [...prev, { role: "agent", text }]);
       if (index < texts.length - 1) {
@@ -135,14 +133,16 @@ function ExperimentContent() {
     [sendMessageSequence]
   );
 
-  // 依序送開場訊息，最後等受試者確認基本資料
+  // 依序送開場訊息，接著直接送出第一題並開放受試者作答
   const beginChat = useCallback(() => {
     setPhase("chat");
     sendMessageSequence(condition.greetings, 0, () => {
-      setCanType(true);
-      setTimeout(() => inputRef.current?.focus(), 100);
+      setTimeout(() => {
+        chatHistoryRef.current.push({ role: "assistant", content: PILOT_QUESTIONS[0] });
+        addAgentMessage(PILOT_QUESTIONS[0]);
+      }, 800);
     });
-  }, [sendMessageSequence, condition.greetings]);
+  }, [sendMessageSequence, condition.greetings, addAgentMessage]);
 
   // 開始對話：真人組先跑連線等待動畫，AI 組直接進入對話
   const startChat = () => {
@@ -172,21 +172,6 @@ function ExperimentContent() {
     setMessages((prev) => [...prev, { role: "user", text }]);
     setInput("");
 
-    // 確認基本資料後，送確認回應再開始第一題
-    if (!greetingDone) {
-      setGreetingDone(true);
-      setCanType(false);
-      setTimeout(() => {
-        addAgentMessages(condition.confirmationResponse || ["好的，那我們開始吧！"], () => {
-          setTimeout(() => {
-            chatHistoryRef.current.push({ role: "assistant", content: PILOT_QUESTIONS[0] });
-            addAgentMessage(PILOT_QUESTIONS[0]);
-          }, 800);
-        });
-      }, 500);
-      return;
-    }
-
     // 立即鎖住輸入，顯示 loading 狀態
     setCanType(false);
     setTyping(true);
@@ -202,7 +187,7 @@ function ExperimentContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ participantId, condition: conditionId, messages: messagesRef.current }),
       }).catch(() => {});
-      router.push(`/survey?condition=${conditionId}&pid=${participantId}`);
+      router.push(`/survey?condition=${conditionId}`);
     };
 
     const advanceQuestion = () => {

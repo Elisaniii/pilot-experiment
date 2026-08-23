@@ -14,12 +14,12 @@ function buildSystemPrompt(conditionId: string, questionIndex: number, turnIndex
   const currentQuestion = PILOT_QUESTIONS[questionIndex];
 
   const personaDesc = isHuman
-    ? `你是${condition.agentName}，一位${isHighEval ? "職涯發展中心的職涯顧問" : "課外活動組的興趣探索顧問"}。你是真實的人類顧問。`
-    : `你是 ${condition.agentName}，一個${isHighEval ? "職涯發展中心的 AI 職涯助理" : "課外活動組的 AI 興趣探索助理"}。`;
+    ? `你是${condition.agentName}，一位${isHighEval ? "職涯發展中心的職涯顧問" : "協助受試者釐清方向與興趣的顧問"}。你是真實的人類顧問。`
+    : `你是 ${condition.agentName}，一個${isHighEval ? "職涯發展中心的 AI 職涯助理" : "協助受試者釐清方向與興趣的 AI 助理"}。`;
 
   const evalContext = isHighEval
-    ? "此次對談目的是評估受試者在未來職場上的競爭力。"
-    : "此次對談目的是了解大學生的社團興趣與課程探索方向。";
+    ? "此次對談目的是評估受試者在未來職場上的競爭力，最後會產出一份職涯競爭力評估報告。"
+    : "此次對談目的是了解受試者的經歷、想法與特質，最後整理一份摘要，幫助他釐清自己的方向與興趣。";
 
   const toneDesc = isHuman
     ? "你的回應風格溫暖、自然，帶有人際互動感。可以使用語氣詞，讓對話感覺像真實的人在聊天。"

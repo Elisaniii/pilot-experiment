@@ -1,31 +1,13 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/firebaseAdmin";
 
-const CONDITION_IDS = [
-  "human-high",
-  "human-low",
-  "human-icon-high",
-  "human-icon-low",
-  "ai-high",
-  "ai-low",
-];
+// 前導一只有兩個情境條件，互動對象皆為 AI
+const CONDITION_IDS = ["ai-high", "ai-low"];
 
-export async function POST(request: Request) {
-  const body = await request.json();
-  const participantId = body?.participantId;
-
-  if (!participantId) {
-    return NextResponse.json({ ok: false, error: "missing participantId" }, { status: 400 });
-  }
-
+export async function POST() {
   const db = getDb();
 
-  const participantDoc = await db.collection("participants").doc(participantId).get();
-  if (!participantDoc.exists) {
-    return NextResponse.json({ ok: false, error: "not found" }, { status: 404 });
-  }
-  const school = participantDoc.data()?.school || "";
-
+  // allocation/counts 由 survey 完成時 +1，據此把新受試者分到「已完成人數較少」的那組
   const countsDoc = await db.collection("allocation").doc("counts").get();
   const counts = (countsDoc.exists ? countsDoc.data() : {}) as Record<string, number>;
 
@@ -34,5 +16,5 @@ export async function POST(request: Request) {
   const candidates = conditionCounts.filter((c) => c.count === minCount);
   const chosen = candidates[Math.floor(Math.random() * candidates.length)];
 
-  return NextResponse.json({ ok: true, school, conditionId: chosen.id });
+  return NextResponse.json({ ok: true, conditionId: chosen.id });
 }

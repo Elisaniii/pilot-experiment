@@ -10,75 +10,11 @@ export interface Condition {
   agentName: string;
   agentAvatar: string; // emoji placeholder, 正式版換成圖片
   instruction: string;
-  greetings: string[]; // 依序送出的開場訊息；{school} 為動態佔位符
-  confirmationResponse?: string[]; // 受試者確認基本資料後的回應，依序送出多個對話框
+  greetings: string[]; // 依序送出的開場訊息
 }
 
+// 前導一：僅操弄評價情境，互動對象統一為 AI 介面（高評價 / 低評價各一條件）
 export const CONDITIONS: Record<string, Condition> = {
-  "human-high": {
-    id: "human-high",
-    agent: "human",
-    eval: "high",
-    label: "真人 × 高評價",
-    agentName: "戴顧問",
-    agentAvatar: "/consultant.png",
-    instruction:
-      "這個研究是與職涯發展中心合作的計畫。你會與一位職涯顧問進行對談，顧問會根據你的回答，評估您在未來職場上的競爭力，產出一份個人競爭力評估報告，包含您的競爭力分數以及優缺點分析。",
-    greetings: [
-      "你好，我是職涯中心的戴顧問，很高興今天能跟你聊聊。",
-      "感謝你願意參加這次的對談，我們會透過幾個問題來了解你，過程中不需要緊張，輕鬆地分享就好。",
-      "首先先確認一下基本的資料，你是來自{school}對嗎？",
-    ],
-    confirmationResponse: ["好的，那我們開始吧！"],
-  },
-  "human-low": {
-    id: "human-low",
-    agent: "human",
-    eval: "low",
-    label: "真人 × 低評價",
-    agentName: "戴顧問",
-    agentAvatar: "/consultant-low.png",
-    instruction:
-      "這個研究是與課外活動組合作的計畫。你會與一位興趣探索顧問進行對談，我們希望了解大專院校學生的社團興趣與課程探索方向，對談結束後，顧問會給你一些修課與社團活動的推薦，作為你個人探索的參考。",
-    greetings: [
-      "你好，我是課活組的戴顧問，很高興今天能跟你聊聊。",
-      "感謝你願意參加這次的對談，我們會透過幾個問題來了解你，過程中不需要緊張，輕鬆地分享就好。",
-      "首先先確認一下基本的資料，你是來自{school}對嗎？",
-    ],
-    confirmationResponse: ["好的，那我們開始吧！"],
-  },
-  "human-icon-high": {
-    id: "human-icon-high",
-    agent: "human",
-    eval: "high",
-    label: "真人(無照片) × 高評價",
-    agentName: "戴顧問",
-    agentAvatar: "/user-icon.png",
-    instruction:
-      "這個研究是與職涯發展中心合作的計畫。你會與一位職涯顧問進行對談，顧問會根據你的回答，評估您在未來職場上的競爭力，產出一份個人競爭力評估報告，包含您的競爭力分數以及優缺點分析。",
-    greetings: [
-      "你好，我是職涯中心的戴顧問，很高興今天能跟你聊聊。",
-      "感謝你願意參加這次的對談，我們會透過幾個問題來了解你，過程中不需要緊張，輕鬆地分享就好。",
-      "首先先確認一下基本的資料，你是來自{school}對嗎？",
-    ],
-    confirmationResponse: ["好的，那我們開始吧！"],
-  },
-  "human-icon-low": {
-    id: "human-icon-low",
-    agent: "human",
-    eval: "low",
-    label: "真人(無照片) × 低評價",
-    agentName: "戴顧問",
-    agentAvatar: "/user-icon.png",
-    instruction:
-      "這個研究是與課外活動組合作的計畫。你會與一位興趣探索顧問進行對談，我們希望了解大專院校學生的社團興趣與課程探索方向，對談結束後，顧問會給你一些修課與社團活動的推薦，作為你個人探索的參考。",
-    greetings: [
-      "你好，我是課活組的戴顧問，很高興今天能跟你聊聊。",
-      "感謝你願意參加這次的對談，我們會透過幾個問題來了解你，過程中不需要緊張，輕鬆地分享就好。",
-      "首先先確認一下基本的資料，你是來自{school}對嗎？",
-    ],
-    confirmationResponse: ["好的，那我們開始吧！"],
-  },
   "ai-high": {
     id: "ai-high",
     agent: "ai",
@@ -87,29 +23,25 @@ export const CONDITIONS: Record<string, Condition> = {
     agentName: "CareerBot",
     agentAvatar: "/robot consultant pic.png",
     instruction:
-      "這個研究是與職涯發展中心合作的計畫。你會與 CareerBot 進行對談，CareerBot 會根據你的回答，評估您在未來職場上的競爭力，產出一份個人競爭力評估報告，包含您的競爭力分數以及優缺點分析。",
+      "你將與 CareerBot 進行一對一對談。對談過程中，CareerBot 會請你描述自己的經歷、想法與特質。對談結束後，CareerBot 將根據你的回答，產出一份個人職涯競爭力評估報告，包含競爭力評分與優劣勢分析。",
     greetings: [
-      "你好，我是職涯中心的 CareerBot，很高興今天能跟你聊聊。",
-      "感謝你願意參加這次的對談，我們會透過幾個問題來了解你，過程中不需要緊張，輕鬆地分享就好。",
-      "首先先確認一下基本的資料，你是來自{school}對嗎？",
+      "你好，我是 CareerBot，很高興今天能跟你聊聊。",
+      "感謝你願意參加這次的對談，我們會透過幾個問題來了解你，過程中不需要緊張，輕鬆地分享就好，那我們開始吧！",
     ],
-    confirmationResponse: ["好的，那我們開始吧！"],
   },
   "ai-low": {
     id: "ai-low",
     agent: "ai",
     eval: "low",
     label: "AI × 低評價",
-    agentName: "MatchBot",
+    agentName: "CareerBot",
     agentAvatar: "/robot consultant pic.png",
     instruction:
-      "這個研究是與課外活動組合作的計畫。你會與 MatchBot 進行對談，我們希望了解大學生的社團興趣與課程探索方向，對談結束後，MatchBot 會給你一些修課與社團活動的推薦，作為你個人探索的參考。",
+      "你將與一位 CareerBot 進行一對一對談。對談過程中，CareerBot 會請你分享自己的經歷、想法與特質。對談結束後，CareerBot 將根據你的分享，整理一份摘要，幫助你釐清自己的方向與興趣。",
     greetings: [
-      "你好，我是課活組的 MatchBot，很高興今天能跟你聊聊。",
-      "感謝你願意參加這次的對談，我們會透過幾個問題來了解你，過程中不需要緊張，輕鬆地分享就好。",
-      "首先先確認一下基本的資料，你是來自{school}對嗎？",
+      "你好，我是 CareerBot，很高興今天能跟你聊聊。",
+      "感謝你願意參加這次的對談，我們會透過幾個問題來了解你，過程中不需要緊張，輕鬆地分享就好，那我們開始吧！",
     ],
-    confirmationResponse: ["好的，那我們開始吧！"],
   },
 };
 
