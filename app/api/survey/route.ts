@@ -2,44 +2,34 @@ import { NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
 import { getDb } from "@/lib/firebaseAdmin";
 
+const VALID_CONDITIONS = ["ai-high", "ai-low"];
+
 export async function POST(request: Request) {
   const body = await request.json();
-  const { participantId, condition, ratings, openAnswer, openAnswer2 } = body;
+  const { condition, evalRatings, normRatings, openAnswer } = body;
 
   if (
-    typeof participantId !== "string" ||
     typeof condition !== "string" ||
-    !Array.isArray(ratings) ||
+    !VALID_CONDITIONS.includes(condition) ||
+    !Array.isArray(evalRatings) ||
+    !Array.isArray(normRatings) ||
     typeof openAnswer !== "string"
   ) {
     return NextResponse.json({ ok: false, error: "invalid payload" }, { status: 400 });
   }
 
-  const VALID_CONDITIONS = [
-    "human-high",
-    "human-low",
-    "human-icon-high",
-    "human-icon-low",
-    "ai-high",
-    "ai-low",
-  ];
-  if (!VALID_CONDITIONS.includes(condition)) {
-    return NextResponse.json({ ok: false, error: "invalid condition" }, { status: 400 });
-  }
-
   const record = {
-    participantId,
     condition,
-    ratings,
+    evalRatings, // 評價情境操弄確認量表（7 題）
+    normRatings, // 自我呈現規範約束量表（4 題，第 4 題為反向題）
     openAnswer,
-    openAnswer2: typeof openAnswer2 === "string" ? openAnswer2 : "",
     timestamp: FieldValue.serverTimestamp(),
   };
 
   const db = getDb();
   await db.collection("survey-responses").add(record);
 
-  // 只有完成問卷才算一次完成，用於後續分配平衡
+  // 完成問卷才 +1，供首頁 assign 平衡分配兩組人數
   await db.collection("allocation").doc("counts").set(
     { [condition]: FieldValue.increment(1) },
     { merge: true }
