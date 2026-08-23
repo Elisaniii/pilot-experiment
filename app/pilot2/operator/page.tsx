@@ -23,6 +23,9 @@ export default function OperatorPage() {
   const [drafting, setDrafting] = useState(false);
   const [creating, setCreating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [joinInput, setJoinInput] = useState("");
+  const [joining, setJoining] = useState(false);
+  const [joinError, setJoinError] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const typingSentRef = useRef(false);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -38,6 +41,27 @@ export default function OperatorPage() {
       }
     } catch {}
     setCreating(false);
+  };
+
+  // 以代碼接回既有場次（跨瀏覽器 / 換裝置時使用）
+  const joinSession = async () => {
+    const c = joinInput.trim().toUpperCase();
+    if (!c) return;
+    setJoining(true);
+    setJoinError(false);
+    try {
+      const res = await fetch(`/api/pilot2/session?code=${c}&role=operator`);
+      const j = res.ok ? await res.json() : null;
+      if (j?.ok) {
+        setCode(c);
+        localStorage.setItem("pilot2OperatorCode", c);
+      } else {
+        setJoinError(true);
+      }
+    } catch {
+      setJoinError(true);
+    }
+    setJoining(false);
   };
 
   // 重整 / 重開瀏覽器後，自動接回上次尚存在的場次
@@ -190,6 +214,32 @@ export default function OperatorPage() {
           >
             {creating ? "建立中⋯" : "建立新場次"}
           </button>
+
+          <div className="pt-2 text-left">
+            <p className="mb-2 text-center text-xs text-gray-400">或輸入場次代碼，接回既有場次</p>
+            <div className="flex gap-2">
+              <input
+                value={joinInput}
+                onChange={(e) => {
+                  setJoinInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8));
+                  setJoinError(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") joinSession();
+                }}
+                placeholder="場次代碼"
+                className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm tracking-widest focus:border-blue-300 focus:outline-none"
+              />
+              <button
+                onClick={joinSession}
+                disabled={!joinInput.trim() || joining}
+                className="rounded-lg bg-gray-100 px-4 py-2 text-sm text-gray-700 hover:bg-gray-200 disabled:opacity-50"
+              >
+                {joining ? "接回中⋯" : "加入"}
+              </button>
+            </div>
+            {joinError && <p className="mt-2 text-center text-xs text-red-500">找不到此場次，請確認代碼。</p>}
+          </div>
         </div>
       </div>
     );
